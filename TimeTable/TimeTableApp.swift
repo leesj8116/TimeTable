@@ -12,7 +12,9 @@ import SwiftData
 struct TimeTableApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Appointment.self,
+            Dog.self,
+            DayOff.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -23,9 +25,13 @@ struct TimeTableApp: App {
         }
     }()
 
+    @State private var holidayStore = HolidayStore()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(holidayStore)
+                .preferredColorScheme(.light)
         }
         .modelContainer(sharedModelContainer)
     }
