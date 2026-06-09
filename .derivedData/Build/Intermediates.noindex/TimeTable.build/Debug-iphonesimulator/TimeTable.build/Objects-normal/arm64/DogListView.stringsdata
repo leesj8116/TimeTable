@@ -1,0 +1,128 @@
+{
+  "source": "/Users/leesj/work/TimeTable/TimeTable/Views/DogListView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "강아지",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "이름 또는 전화번호 검색",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "예약 추가 화면에서 신규 강아지를 등록할 수 있습니다.",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 23
+        }
+      },
+      {
+        "comment": "",
+        "key": "등록된 강아지가 없습니다",
+        "location": {
+          "startingColumn": 94,
+          "startingLine": 21
+        }
+      },
+      {
+        "comment": "",
+        "key": "검색 결과가 없습니다",
+        "location": {
+          "startingColumn": 134,
+          "startingLine": 21
+        }
+      },
+      {
+        "comment": "",
+        "key": "연락처 저장 안내",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "기본 정보",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "휴대전화번호",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "이름",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "연락처 저장명",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "견종/메모",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "견종/메모",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "등록된 번호가 없습니다.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "수정",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "확인",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 84
+        }
+      }
+    ]
+  },
+  "version": 1
+}

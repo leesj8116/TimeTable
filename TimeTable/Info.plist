@@ -2,9 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
+	<key>CFBundleDisplayName</key>
+	<string>향기짱</string>
+	<key>UIUserInterfaceStyle</key>
+	<string>Light</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>공휴일 표시를 위해 캘린더 접근 권한이 필요합니다.</string>
 </dict>
 </plist>

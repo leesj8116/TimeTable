@@ -1,0 +1,16 @@
+{
+  "source": "/Users/leesj/work/TimeTable/TimeTable/Views/WeeklyTimetableView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "오늘",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 41
+        }
+      }
+    ]
+  },
+  "version": 1
+}

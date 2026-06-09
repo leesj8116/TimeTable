@@ -1,0 +1,24 @@
+{
+  "source": "/Users/leesj/work/TimeTable/TimeTable/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "시간표",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 13
+        }
+      },
+      {
+        "comment": "",
+        "key": "강아지",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 18
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,16 @@
+{
+  "source": "/Users/leesj/work/TimeTable/TimeTable/Views/TimetableGridView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "점심",
+        "location": {
+          "startingColumn": 14,
+          "startingLine": 139
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,48 @@
+{
+  "source": "/Users/leesj/work/TimeTable/TimeTable/Views/DogPickerSection.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "강아지 정보",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "검색 결과가 없습니다.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "선택 해제",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 22
+        }
+      },
+      {
+        "comment": "",
+        "key": "강아지 이름 또는 전화번호 검색",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "신규 강아지 등록",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 58
+        }
+      }
+    ]
+  },
+  "version": 1
+}

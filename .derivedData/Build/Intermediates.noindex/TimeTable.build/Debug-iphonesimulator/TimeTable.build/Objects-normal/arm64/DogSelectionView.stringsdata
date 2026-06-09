@@ -1,0 +1,72 @@
+{
+  "source": "/Users/leesj/work/TimeTable/TimeTable/Views/DogSelectionView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "강아지 선택",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "이름 또는 전화번호 검색",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "등록된 강아지가 없습니다",
+        "location": {
+          "startingColumn": 94,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "검색 결과가 없습니다",
+        "location": {
+          "startingColumn": 134,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "우측 상단의 강아지 추가 버튼으로 신규 등록할 수 있습니다.",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "예약 추가 화면에서 신규 강아지를 등록할 수 있습니다.",
+        "location": {
+          "startingColumn": 144,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "닫기",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "강아지 추가",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 60
+        }
+      }
+    ]
+  },
+  "version": 1
+}
