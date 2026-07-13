@@ -77,3 +77,5 @@ xcuserdata/
 ## oh-my-codex, oh-my-claudecode
 .omx/**
 .omc/**
+## Xcode build output (project-local DerivedData)
+.derivedData/
