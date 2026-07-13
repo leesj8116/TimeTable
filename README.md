@@ -20,6 +20,11 @@
 - SwiftData (로컬 데이터 저장: 예약, 반려견, 휴무일)
 - EventKit (공휴일 연동)
 - Swift 5.0, iOS 26.4+
+- 타겟 디바이스: iPhone 14
+
+## 개발 방식
+
+이 프로젝트의 코드 작성 및 구현은 Claude Code와 Codex를 통한 바이브 코딩(vibe coding)으로 진행하고 있습니다.
 
 ## 프로젝트 구조
 
