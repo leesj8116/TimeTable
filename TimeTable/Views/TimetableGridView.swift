@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TimetableGridView: View {
     @Environment(HolidayStore.self) private var holidayStore
+    @AppStorage("showHolidays") private var showHolidays = true
 
     let days: [Date]
     let appointments: [Appointment]
@@ -112,11 +113,11 @@ struct TimetableGridView: View {
                 VStack(spacing: 2) {
                     Text(weekdayLabel(for: day))
                         .font(.caption2)
-                        .foregroundStyle(isToday(day) ? Color.accentColor : holidayStore.isHoliday(day) ? .red : Color.secondary)
+                        .foregroundStyle(isToday(day) ? Color.accentColor : isDisplayedHoliday(day) ? .red : Color.secondary)
                     Text(dayString(for: day))
                         .font(.subheadline)
                         .fontWeight(isToday(day) ? .bold : .regular)
-                        .foregroundStyle(isToday(day) ? Color.white : holidayStore.isHoliday(day) ? .red : Color.primary)
+                        .foregroundStyle(isToday(day) ? Color.white : isDisplayedHoliday(day) ? .red : Color.primary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background {
@@ -238,10 +239,14 @@ struct TimetableGridView: View {
 
     private func weekdayLabel(for date: Date) -> String {
         let base = weekdayString(for: date)
-        if let label = holidayStore.specialLabel(date) {
+        if showHolidays, let label = holidayStore.specialLabel(date) {
             return "\(base) (\(label))"
         }
         return base
+    }
+
+    private func isDisplayedHoliday(_ date: Date) -> Bool {
+        showHolidays && holidayStore.isHoliday(date)
     }
 
     private func dayString(for date: Date) -> String {

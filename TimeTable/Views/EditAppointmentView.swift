@@ -32,7 +32,7 @@ struct EditAppointmentView: View {
         _selectedDog        = State(initialValue: appointment.dog)
         _serviceType        = State(initialValue: appointment.serviceType)
         _startTime          = State(initialValue: appointment.startTime)
-        _durationAdjustment = State(initialValue: perDog - appointment.serviceType.baseDuration)
+        _durationAdjustment = State(initialValue: perDog - appointment.serviceType.defaultDuration)
         _isTwoDogs          = State(initialValue: twoDogs)
         _memo               = State(initialValue: appointment.memo)
 
@@ -43,7 +43,7 @@ struct EditAppointmentView: View {
     }
 
     private var durationMinutes: Int {
-        (serviceType.baseDuration + durationAdjustment) * (isTwoDogs ? 2 : 1)
+        (serviceType.defaultDuration + durationAdjustment) * (isTwoDogs ? 2 : 1)
     }
 
     var body: some View {

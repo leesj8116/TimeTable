@@ -34,7 +34,7 @@ struct AddAppointmentView: View {
     }
 
     private var durationMinutes: Int {
-        (serviceType.baseDuration + durationAdjustment) * (isTwoDogs ? 2 : 1)
+        (serviceType.defaultDuration + durationAdjustment) * (isTwoDogs ? 2 : 1)
     }
 
     private var trimmedDogName: String {
@@ -254,7 +254,7 @@ struct AddAppointmentView: View {
             dogToLink = autoRegisterDogIfNeeded(input: trimmedDogName)
         }
 
-        let effectiveAdjustment = durationMinutes - serviceType.baseDuration
+        let effectiveAdjustment = durationMinutes - serviceType.defaultDuration
         let appt = Appointment(
             dogName: parsed.dogName,
             dog: dogToLink,

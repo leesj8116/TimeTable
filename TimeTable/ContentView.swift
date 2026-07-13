@@ -22,6 +22,11 @@ struct ContentView: View {
                 .tabItem {
                     Label("대기", systemImage: "clock.badge.questionmark")
                 }
+
+            SettingsView()
+                .tabItem {
+                    Label("설정", systemImage: "gearshape")
+                }
         }
         .onAppear {
             DogMigrationHelper.migrateToPhoneCodeKeys(

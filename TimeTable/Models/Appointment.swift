@@ -23,6 +23,16 @@ enum ServiceType: String, CaseIterable {
         }
     }
 
+    static func durationStorageKey(for service: ServiceType) -> String {
+        "serviceDuration.\(service.rawValue)"
+    }
+
+    /// 설정에서 조정한 소요시간이 있으면 그 값을, 없으면 baseDuration을 반환
+    var defaultDuration: Int {
+        let stored = UserDefaults.standard.integer(forKey: Self.durationStorageKey(for: self))
+        return stored > 0 ? stored : baseDuration
+    }
+
 }
 
 @Model
@@ -79,7 +89,7 @@ final class Appointment {
         self.dog = dog
         self.serviceTypeRaw = serviceType.rawValue
         self.startTime = startTime
-        self.durationMinutes = serviceType.baseDuration + durationAdjustment
+        self.durationMinutes = serviceType.defaultDuration + durationAdjustment
         self.memo = memo
     }
 }
