@@ -32,10 +32,9 @@ struct WeeklyTimetableView: View {
                 dayOffs: allDayOffs,
                 onTapAppointment: { activeSheet = .edit($0) },
                 onTapSlot: { activeSheet = .add($0) },
-                onToggleDayOff: toggleDayOff
+                onToggleDayOff: toggleDayOff,
+                onSwipeWeek: swipeWeek
             )
-            .contentShape(Rectangle())
-            .simultaneousGesture(weekSwipeGesture)
             .navigationTitle(viewModel.weekRangeText())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -120,27 +119,14 @@ struct WeeklyTimetableView: View {
         }
     }
 
-    private var weekSwipeGesture: some Gesture {
-        DragGesture(minimumDistance: 35, coordinateSpace: .local)
-            .onEnded { value in
-                let horizontal = value.translation.width
-                let vertical = value.translation.height
-
-                guard abs(horizontal) > abs(vertical) * 1.25,
-                      abs(horizontal) > 70 else {
-                    return
-                }
-
-                if horizontal < 0 {
-                    withoutAnimation {
-                        viewModel.nextWeek()
-                    }
-                } else {
-                    withoutAnimation {
-                        viewModel.previousWeek()
-                    }
-                }
+    private func swipeWeek(_ direction: Int) {
+        withoutAnimation {
+            if direction > 0 {
+                viewModel.nextWeek()
+            } else {
+                viewModel.previousWeek()
             }
+        }
     }
 
     private func withoutAnimation(_ action: () -> Void) {

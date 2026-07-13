@@ -10,6 +10,7 @@ struct TimetableGridView: View {
     let onTapAppointment: (Appointment) -> Void
     let onTapSlot: (Date) -> Void
     let onToggleDayOff: (Date) -> Void
+    let onSwipeWeek: (Int) -> Void
 
     private let gutterWidth: CGFloat = 50
     private let headerHeight: CGFloat = 50
@@ -98,8 +99,28 @@ struct TimetableGridView: View {
                     }
                     .frame(height: TimeSlotHelper.totalHeight + topPadding, alignment: .topLeading)
                 }
+                // 주간 스와이프는 그리드 본문에만 적용한다.
+                // 헤더에 함께 걸리면 휴무 지정 롱프레스와 동시에 인식되어
+                // 메뉴가 잡은 날짜와 화면의 주가 어긋날 수 있다.
+                .contentShape(Rectangle())
+                .simultaneousGesture(weekSwipeGesture)
             }
         }
+    }
+
+    private var weekSwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 35, coordinateSpace: .local)
+            .onEnded { value in
+                let horizontal = value.translation.width
+                let vertical = value.translation.height
+
+                guard abs(horizontal) > abs(vertical) * 1.25,
+                      abs(horizontal) > 70 else {
+                    return
+                }
+
+                onSwipeWeek(horizontal < 0 ? 1 : -1)
+            }
     }
 
     // MARK: - Header
@@ -134,13 +155,13 @@ struct TimetableGridView: View {
                         Button(role: .destructive) {
                             onToggleDayOff(day)
                         } label: {
-                            Label("휴무 해제", systemImage: "sun.max")
+                            Label("\(menuDateLabel(for: day)) 휴무 해제", systemImage: "sun.max")
                         }
                     } else {
                         Button {
                             onToggleDayOff(day)
                         } label: {
-                            Label("휴무 지정", systemImage: "moon.zzz")
+                            Label("\(menuDateLabel(for: day)) 휴무 지정", systemImage: "moon.zzz")
                         }
                     }
                 }
@@ -251,6 +272,11 @@ struct TimetableGridView: View {
 
     private func dayString(for date: Date) -> String {
         return "\(Calendar.current.component(.day, from: date))"
+    }
+
+    private func menuDateLabel(for date: Date) -> String {
+        let comps = Calendar.current.dateComponents([.month, .day], from: date)
+        return "\(comps.month ?? 0)월 \(comps.day ?? 0)일 (\(weekdayString(for: date)))"
     }
 
     private func isToday(_ date: Date) -> Bool {
