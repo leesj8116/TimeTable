@@ -35,6 +35,9 @@ struct SettingsView: View {
                     NavigationLink("서비스 기본 소요시간") {
                         ServiceDurationSettingsView()
                     }
+                    NavigationLink("예약 통계") {
+                        StatisticsView()
+                    }
                 }
 
                 Section("앱 정보") {
