@@ -6,5 +6,7 @@
 	<string>향기짱</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>공휴일 표시를 위해 캘린더 접근 권한이 필요합니다.</string>
+	<key>UIUserInterfaceStyle</key>
+	<string>Light</string>
 </dict>
 </plist>

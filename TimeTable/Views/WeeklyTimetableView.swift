@@ -22,7 +22,6 @@ struct WeeklyTimetableView: View {
     @State private var viewModel = TimetableViewModel()
     @State private var activeSheet: SheetState?
     @State private var showDayOffConflictAlert = false
-    @AppStorage("showHolidays") private var showHolidays = true
 
     var body: some View {
         NavigationStack {
@@ -69,10 +68,7 @@ struct WeeklyTimetableView: View {
             } message: {
                 Text("이 날에 이미 예약이 있습니다.\n예약을 먼저 삭제하거나 이동한 뒤 휴무를 지정하세요.")
             }
-            .task(id: showHolidays) {
-                guard showHolidays else { return }
-                await holidayStore.requestAccessAndLoad()
-            }
+            .task { await holidayStore.requestAccessAndLoad() }
         }
     }
 

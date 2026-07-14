@@ -14,7 +14,6 @@ final class ScreenshotTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += [
             "--seed-screenshot-data",
-            "-showHolidays", "NO",
             "-AppleLanguages", "(ko)",
             "-AppleLocale", "ko_KR",
         ]
@@ -33,12 +32,6 @@ final class ScreenshotTests: XCTestCase {
         settle()
         attach(app, name: "02-appointment-form")
         app.navigationBars["예약 수정"].buttons["취소"].tap()
-
-        // 3. 설정 화면
-        app.tabBars.buttons["설정"].tap()
-        XCTAssertTrue(app.navigationBars["설정"].waitForExistence(timeout: 5))
-        settle()
-        attach(app, name: "03-settings")
     }
 
     /// 전환 애니메이션이 끝날 때까지 잠시 대기

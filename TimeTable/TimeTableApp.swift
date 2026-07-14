@@ -32,13 +32,12 @@ struct TimeTableApp: App {
     }()
 
     @State private var holidayStore = HolidayStore()
-    @AppStorage("appTheme") private var appTheme: AppTheme = .system
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(holidayStore)
-                .preferredColorScheme(appTheme.colorScheme)
+                .preferredColorScheme(.light)
         }
         .modelContainer(sharedModelContainer)
     }

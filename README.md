@@ -13,9 +13,8 @@
 - **공휴일 표시**: EventKit으로 기기의 대한민국 공휴일 캘린더를 읽어와 시간표에 공휴일과 설날/추석 라벨을 표시합니다. 최초 실행 시 캘린더 접근 권한이 필요합니다.
 - **휴무일 지정**: 특정 날짜를 휴무로 지정해 해당 날짜의 예약을 막을 수 있습니다.
 - **대기 메모**: 자유 형식의 메모를 기기에 저장해두는 대기 탭을 제공합니다.
-- **설정**: 화면 테마(라이트/다크/시스템 설정 따르기), 공휴일 표시 켜기/끄기, 서비스 종류별 기본 소요시간을 조정할 수 있습니다. 설정은 기기에 저장되어 앱을 다시 실행해도 유지되며, 앱 버전 정보도 확인할 수 있습니다.
 
-앱은 시간표 / 회원 / 대기 / 설정 네 개의 탭으로 구성되어 있습니다.
+앱은 시간표 / 회원 / 대기 세 개의 탭으로 구성되어 있습니다.
 
 ## 스크린샷
 
@@ -23,9 +22,9 @@
      xcresult에서 첨부 이미지를 추출해 docs/screenshots/에 저장합니다.
      샘플 데이터는 --seed-screenshot-data 런치 인자로 주입되며 인메모리 스토어를 사용합니다. -->
 
-| 주간 시간표 | 예약 등록/수정 | 설정 |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/timetable.png" width="260" alt="예약이 등록된 주간 시간표" /> | <img src="docs/screenshots/appointment-form.png" width="260" alt="예약 수정 화면" /> | <img src="docs/screenshots/settings.png" width="260" alt="설정 화면" /> |
+| 주간 시간표 | 예약 등록/수정 |
+| :---: | :---: |
+| <img src="docs/screenshots/timetable.png" width="260" alt="예약이 등록된 주간 시간표" /> | <img src="docs/screenshots/appointment-form.png" width="260" alt="예약 수정 화면" /> |
 
 ## 기술 스택
 
@@ -43,8 +42,8 @@
 
 ```
 TimeTable/
-├── Models/        # SwiftData 모델 (Appointment, Dog, DayOff)과 AppTheme
-├── Views/         # 화면 (시간표 그리드, 예약 등록/수정, 회원 목록, 대기 메모, 설정 등)
+├── Models/        # SwiftData 모델 (Appointment, Dog, DayOff)
+├── Views/         # 화면 (시간표 그리드, 예약 등록/수정, 회원 목록, 대기 메모 등)
 ├── ViewModels/     # 화면 상태/로직 (주간 이동, 공휴일 로딩)
 └── Utilities/      # 보조 로직 (시간 슬롯 계산, 회원 마이그레이션 등)
 ```
