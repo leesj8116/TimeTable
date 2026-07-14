@@ -1,4 +1,7 @@
-# 향기짱 시간표
+<div align="center">
+  <img src="docs/logo.png" alt="향기짱 시간표 로고" width="120" />
+  <h1>향기짱 시간표</h1>
+</div>
 
 애견미용실 주간 예약 관리를 위한 iOS 앱입니다. SwiftUI와 SwiftData로 만들어졌습니다.
 
@@ -13,6 +16,16 @@
 - **설정**: 화면 테마(라이트/다크/시스템 설정 따르기), 공휴일 표시 켜기/끄기, 서비스 종류별 기본 소요시간을 조정할 수 있습니다. 설정은 기기에 저장되어 앱을 다시 실행해도 유지되며, 앱 버전 정보도 확인할 수 있습니다.
 
 앱은 시간표 / 회원 / 대기 / 설정 네 개의 탭으로 구성되어 있습니다.
+
+## 스크린샷
+
+<!-- 스크린샷 갱신: TimeTableUITests/ScreenshotTests를 시뮬레이터에서 실행한 뒤
+     xcresult에서 첨부 이미지를 추출해 docs/screenshots/에 저장합니다.
+     샘플 데이터는 --seed-screenshot-data 런치 인자로 주입되며 인메모리 스토어를 사용합니다. -->
+
+| 주간 시간표 | 예약 등록/수정 | 설정 |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/timetable.png" width="260" alt="예약이 등록된 주간 시간표" /> | <img src="docs/screenshots/appointment-form.png" width="260" alt="예약 수정 화면" /> | <img src="docs/screenshots/settings.png" width="260" alt="설정 화면" /> |
 
 ## 기술 스택
 

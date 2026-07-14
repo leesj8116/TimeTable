@@ -16,7 +16,13 @@ struct TimeTableApp: App {
             Dog.self,
             DayOff.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        // 스크린샷 시드 모드에서는 인메모리 스토어를 사용해 실제 데이터를 보호한다
+        #if DEBUG
+        let isStoredInMemoryOnly = CommandLine.arguments.contains(ScreenshotSeedData.launchArgument)
+        #else
+        let isStoredInMemoryOnly = false
+        #endif
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: isStoredInMemoryOnly)
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])

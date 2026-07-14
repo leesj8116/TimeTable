@@ -29,6 +29,9 @@ struct ContentView: View {
                 }
         }
         .onAppear {
+            #if DEBUG
+            ScreenshotSeedData.seedIfNeeded(modelContext: modelContext)
+            #endif
             DogMigrationHelper.migrateToPhoneCodeKeys(
                 for: allDogs,
                 appointments: allAppointments,
