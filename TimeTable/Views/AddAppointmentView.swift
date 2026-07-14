@@ -21,7 +21,6 @@ struct AddAppointmentView: View {
     @State private var memo: String = ""
     @State private var showError = false
     @State private var errorMessage = ""
-    @FocusState private var isDogNameFocused: Bool
 
     init(defaultDate: Date? = nil, viewModel: TimetableViewModel) {
         self.viewModel = viewModel
@@ -42,81 +41,18 @@ struct AddAppointmentView: View {
     }
 
     private var isNameValid: Bool {
-        parsedInput(trimmedDogName).phoneCode != nil
-    }
-
-    private var suggestedDogs: [Dog] {
-        guard !trimmedDogName.isEmpty else { return [] }
-        let parsed = parsedInput(trimmedDogName)
-        let searchQuery = parsed.phoneCode ?? trimmedDogName
-
-        var matched = allDogs
-            .filter { $0.matches(searchQuery) && $0.id != selectedDog?.id }
-
-        if parsed.phoneCode == nil {
-            var seen = Set(matched.map { $0.id })
-            if let sid = selectedDog?.id { seen.insert(sid) }
-            for appt in allAppointments {
-                guard let dog = appt.dog, !seen.contains(dog.id) else { continue }
-                if appt.dogName.localizedStandardContains(searchQuery) {
-                    matched.append(dog)
-                    seen.insert(dog.id)
-                }
-            }
-        }
-
-        return matched
-            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-            .prefix(5)
-            .map { $0 }
+        DogMigrationHelper.splitNameCode(trimmedDogName) != nil
     }
 
     var body: some View {
         NavigationStack {
             Form {
-                Section("강아지 정보") {
-                    TextField("강아지 이름 (예: 뽀삐1234)", text: $dogName)
-                        .autocorrectionDisabled()
-                        .focused($isDogNameFocused)
-                        .frame(maxWidth: .infinity)
-                        .onChange(of: dogName) {
-                            let parsed = parsedInput(trimmedDogName)
-                            if selectedDog?.name != parsed.phoneCode {
-                                selectedDog = nil
-                            }
-                        }
-                    if !trimmedDogName.isEmpty && !isNameValid {
-                        Text("끝 4자리를 전화번호로 입력해주세요 (예: 뽀삐1234)")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
-                    }
-
-                    if let selectedDog {
-                        HStack(alignment: .top) {
-                            DogSummaryRow(dog: selectedDog)
-                            Spacer()
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.tint)
-                        }
-                    } else if !suggestedDogs.isEmpty {
-                        ForEach(suggestedDogs) { dog in
-                            Button {
-                                selectDog(dog)
-                            } label: {
-                                HStack {
-                                    DogSummaryRow(dog: dog)
-                                    Spacer()
-                                    Text("선택")
-                                        .font(.caption)
-                                        .foregroundStyle(.tint)
-                                }
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-
-                }
+                DogNameInputSection(
+                    dogName: $dogName,
+                    selectedDog: $selectedDog,
+                    allDogs: allDogs,
+                    allAppointments: allAppointments
+                )
 
                 Section("메모") {
                     TextField("메모 입력", text: $memo, axis: .vertical)
@@ -212,29 +148,6 @@ struct AddAppointmentView: View {
         return m == 0 ? "\(h)시간" : "\(h)시간 \(m)분"
     }
 
-    private func selectDog(_ dog: Dog) {
-        selectedDog = dog
-        dogName = dog.latestDogName + dog.name
-    }
-
-    private func parsedInput(_ input: String) -> (dogName: String, phoneCode: String?) {
-        guard let (name, code) = DogMigrationHelper.splitNameCode(input) else {
-            return (input, nil)
-        }
-        return (name, code)
-    }
-
-    private func autoRegisterDogIfNeeded(input: String) -> Dog? {
-        let parsed = parsedInput(input)
-        guard let phoneCode = parsed.phoneCode else { return nil }
-        if let existing = allDogs.first(where: { $0.name == phoneCode && $0.latestDogName == parsed.dogName }) {
-            return existing
-        }
-        let newDog = Dog(name: phoneCode, latestDogName: parsed.dogName)
-        modelContext.insert(newDog)
-        return newDog
-    }
-
     private func save() {
         guard !trimmedDogName.isEmpty else { return }
 
@@ -246,13 +159,9 @@ struct AddAppointmentView: View {
             return
         }
 
-        let parsed = parsedInput(trimmedDogName)
-        let dogToLink: Dog?
-        if let selected = selectedDog {
-            dogToLink = selected
-        } else {
-            dogToLink = autoRegisterDogIfNeeded(input: trimmedDogName)
-        }
+        guard let parsed = DogMigrationHelper.splitNameCode(trimmedDogName) else { return }
+        let dogToLink = selectedDog
+            ?? DogMigrationHelper.findOrCreateDog(input: trimmedDogName, existingDogs: allDogs, modelContext: modelContext)
 
         let effectiveAdjustment = durationMinutes - serviceType.baseDuration
         let appt = Appointment(

@@ -5,11 +5,13 @@ struct EditAppointmentView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query private var allAppointments: [Appointment]
+    @Query private var allDogs: [Dog]
     @Query private var allDayOffs: [DayOff]
 
     let appointment: Appointment
     let viewModel: TimetableViewModel
 
+    @State private var dogName: String
     @State private var selectedDog: Dog?
     @State private var serviceType: ServiceType
     @State private var startTime: Date
@@ -20,7 +22,6 @@ struct EditAppointmentView: View {
     @State private var memo: String
     @State private var showError = false
     @State private var errorMessage = ""
-    @State private var showDogSelectionSheet = false
 
     init(appointment: Appointment, viewModel: TimetableViewModel) {
         self.appointment = appointment
@@ -29,6 +30,7 @@ struct EditAppointmentView: View {
         let twoDogs = appointment.isTwoDogs
         let perDog  = appointment.durationMinutes / (twoDogs ? 2 : 1)
 
+        _dogName            = State(initialValue: appointment.displayDogName + (appointment.dog?.name ?? ""))
         _selectedDog        = State(initialValue: appointment.dog)
         _serviceType        = State(initialValue: appointment.serviceType)
         _startTime          = State(initialValue: appointment.startTime)
@@ -46,23 +48,23 @@ struct EditAppointmentView: View {
         (serviceType.baseDuration + durationAdjustment) * (isTwoDogs ? 2 : 1)
     }
 
+    private var trimmedDogName: String {
+        dogName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var isNameValid: Bool {
+        DogMigrationHelper.splitNameCode(trimmedDogName) != nil
+    }
+
     var body: some View {
         NavigationStack {
             Form {
-                Section("강아지 정보") {
-                    if let selectedDog {
-                        DogSummaryRow(dog: selectedDog)
-                    } else {
-                        Text(appointment.displayDogName)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Button {
-                        showDogSelectionSheet = true
-                    } label: {
-                        Label(selectedDog == nil ? "강아지 선택" : "다른 강아지 선택", systemImage: "pawprint")
-                    }
-                }
+                DogNameInputSection(
+                    dogName: $dogName,
+                    selectedDog: $selectedDog,
+                    allDogs: allDogs,
+                    allAppointments: allAppointments
+                )
 
                 Section("메모") {
                     TextField("메모 입력", text: $memo, axis: .vertical)
@@ -139,18 +141,13 @@ struct EditAppointmentView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("저장") { save() }
-                        .disabled(selectedDog == nil)
+                        .disabled(!isNameValid)
                 }
             }
             .alert("예약 불가", isPresented: $showError) {
                 Button("확인", role: .cancel) {}
             } message: {
                 Text(errorMessage)
-            }
-            .sheet(isPresented: $showDogSelectionSheet) {
-                DogSelectionView(selectedDog: selectedDog, allowsAdding: false) { dog in
-                    selectedDog = dog
-                }
             }
         }
     }
@@ -170,7 +167,7 @@ struct EditAppointmentView: View {
     }
 
     private func save() {
-        guard let dog = selectedDog else { return }
+        guard let parsed = DogMigrationHelper.splitNameCode(trimmedDogName) else { return }
 
         let snapped = snapToHalfHour(startTime)
 
@@ -186,8 +183,11 @@ struct EditAppointmentView: View {
             return
         }
 
-        appointment.dogName         = dog.latestDogName.isEmpty ? dog.name : dog.latestDogName
-        appointment.dog             = dog
+        let dogToLink = selectedDog
+            ?? DogMigrationHelper.findOrCreateDog(input: trimmedDogName, existingDogs: allDogs, modelContext: modelContext)
+
+        appointment.dogName         = parsed.dogName
+        appointment.dog             = dogToLink
         appointment.serviceType     = serviceType
         appointment.startTime       = snapped
         appointment.durationMinutes = durationMinutes

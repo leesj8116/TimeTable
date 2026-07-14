@@ -96,6 +96,17 @@ enum DogMigrationHelper {
         }
     }
 
+    // "{이름}{4자리숫자}" 입력에 해당하는 Dog를 찾고, 없으면 새로 등록. 코드 패턴이 없으면 nil 반환
+    static func findOrCreateDog(input: String, existingDogs: [Dog], modelContext: ModelContext) -> Dog? {
+        guard let (dogName, phoneCode) = splitNameCode(input) else { return nil }
+        if let existing = existingDogs.first(where: { $0.name == phoneCode && $0.latestDogName == dogName }) {
+            return existing
+        }
+        let newDog = Dog(name: phoneCode, latestDogName: dogName)
+        modelContext.insert(newDog)
+        return newDog
+    }
+
     // "{이름}{4자리숫자}" 패턴을 (이름, 코드)로 분리. 패턴 불일치 시 nil 반환
     static func splitNameCode(_ value: String) -> (dogName: String, phoneCode: String)? {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
