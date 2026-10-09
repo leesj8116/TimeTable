@@ -37,14 +37,28 @@ final class TimetableViewModel {
         weekDays(for: currentWeekStart)
     }
 
-    /// Returns [Tue, Wed, Thu, Fri, Sat] for a specific ISO week start date
-    func weekDays(for weekStart: Date) -> [Date] {
+    /// Returns [Tue, Wed, Thu, Fri, Sat] for a specific ISO week start date.
+    /// includeMonday이면 추가 근무일인 월요일을 앞에 붙여 [Mon … Sat]을 반환한다.
+    func weekDays(for weekStart: Date, includeMonday: Bool = false) -> [Date] {
         var cal = Calendar(identifier: .iso8601)
         cal.locale = Locale.current
         // ISO week starts Monday (offset 0). Tuesday = +1 … Saturday = +5
-        return (1...5).compactMap { offset in
+        let offsets = includeMonday ? 0...5 : 1...5
+        return offsets.compactMap { offset in
             cal.date(byAdding: .day, value: offset, to: weekStart)
         }
+    }
+
+    /// ISO 주 시작일이 곧 그 주의 월요일이다
+    func monday(for weekStart: Date) -> Date {
+        Calendar.current.startOfDay(for: weekStart)
+    }
+
+    /// 정규 근무일(화~토)이거나 추가 근무일로 지정된 날이면 true
+    static func isWorkDay(_ date: Date, extraWorkDays: [ExtraWorkDay]) -> Bool {
+        let cal = Calendar.current
+        return TimeSlotHelper.isWorkDay(date)
+            || extraWorkDays.contains { cal.isDate($0.date, inSameDayAs: date) }
     }
 
     func previousWeek() {
@@ -65,8 +79,8 @@ final class TimetableViewModel {
         weekRangeText(for: currentWeekStart)
     }
 
-    func weekRangeText(for weekStart: Date) -> String {
-        let days = weekDays(for: weekStart)
+    func weekRangeText(for weekStart: Date, includeMonday: Bool = false) -> String {
+        let days = weekDays(for: weekStart, includeMonday: includeMonday)
         guard let first = days.first, let last = days.last else { return "" }
         let cal = Calendar.current
         let firstMonth = cal.component(.month, from: first)
@@ -84,7 +98,8 @@ final class TimetableViewModel {
         durationMinutes: Int,
         excluding id: UUID? = nil,
         existing: [Appointment],
-        dayOffs: [DayOff] = []
+        dayOffs: [DayOff] = [],
+        extraWorkDays: [ExtraWorkDay] = []
     ) -> Bool {
         let cal = Calendar.current
         let endTime = cal.date(byAdding: .minute, value: durationMinutes, to: startTime)!
@@ -99,8 +114,8 @@ final class TimetableViewModel {
         guard startMin >= TimeSlotHelper.workStartHour * 60,
               endMin   <= TimeSlotHelper.workEndHour   * 60 else { return false }
 
-        // Must be a work day (Tue–Sat)
-        guard TimeSlotHelper.isWorkDay(startTime) else { return false }
+        // Must be a work day (Tue–Sat, or an extra work day)
+        guard TimetableViewModel.isWorkDay(startTime, extraWorkDays: extraWorkDays) else { return false }
 
         // No overlap with existing appointments on the same day
         let sameDay = existing.filter {
