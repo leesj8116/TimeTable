@@ -15,6 +15,7 @@ struct TimeTableApp: App {
             Appointment.self,
             Dog.self,
             DayOff.self,
+            ExtraWorkDay.self,
         ])
         // 스크린샷 시드 모드에서는 인메모리 스토어를 사용해 실제 데이터를 보호한다
         #if DEBUG

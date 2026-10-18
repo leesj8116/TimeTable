@@ -8,6 +8,7 @@ struct EditAppointmentView: View {
     @Query private var allAppointments: [Appointment]
     @Query private var allDogs: [Dog]
     @Query private var allDayOffs: [DayOff]
+    @Query private var allExtraWorkDays: [ExtraWorkDay]
 
     let appointment: Appointment
     let viewModel: TimetableViewModel
@@ -196,7 +197,8 @@ struct EditAppointmentView: View {
             durationMinutes: durationMinutes,
             excluding: appointment.id,
             existing: allAppointments,
-            dayOffs: allDayOffs
+            dayOffs: allDayOffs,
+            extraWorkDays: allExtraWorkDays
         ) else {
             errorMessage = bookingErrorMessage(for: snapped)
             showError = true
@@ -226,8 +228,8 @@ struct EditAppointmentView: View {
         if allDayOffs.contains(where: { cal.isDate($0.date, inSameDayAs: date) }) {
             return "휴무일에는 예약할 수 없습니다."
         }
-        if !TimeSlotHelper.isWorkDay(date) {
-            return "화요일~토요일만 예약 가능합니다."
+        if !TimetableViewModel.isWorkDay(date, extraWorkDays: allExtraWorkDays) {
+            return "화요일~토요일(또는 추가 근무일)만 예약 가능합니다."
         }
         let startMin = TimeSlotHelper.timeOfDayMinutes(for: date)
         let endMin   = startMin + durationMinutes
