@@ -33,11 +33,13 @@ struct TimeTableApp: App {
     }()
 
     @State private var holidayStore = HolidayStore()
+    @State private var router = AppRouter.shared
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(holidayStore)
+                .environment(router)
                 .preferredColorScheme(.light)
         }
         .modelContainer(sharedModelContainer)

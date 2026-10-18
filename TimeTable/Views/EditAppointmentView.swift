@@ -4,6 +4,7 @@ import SwiftData
 struct EditAppointmentView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @State private var showDiscardConfirmation = false
     @Query private var allAppointments: [Appointment]
     @Query private var allDogs: [Dog]
     @Query private var allDayOffs: [DayOff]
@@ -23,6 +24,7 @@ struct EditAppointmentView: View {
     @State private var memo: String
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showDeleteConfirmation = false
 
     init(appointment: Appointment, viewModel: TimetableViewModel) {
         self.appointment = appointment
@@ -51,6 +53,16 @@ struct EditAppointmentView: View {
 
     private var trimmedDogName: String {
         dogName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var hasChanges: Bool {
+        trimmedDogName != appointment.displayDogName + (appointment.dog?.name ?? "")
+            || selectedDog?.id != appointment.dog?.id
+            || serviceType != appointment.serviceType
+            || startTime != appointment.startTime
+            || durationMinutes != appointment.durationMinutes
+            || isTwoDogs != appointment.isTwoDogs
+            || memo != appointment.memo
     }
 
     private var isNameValid: Bool {
@@ -104,33 +116,30 @@ struct EditAppointmentView: View {
                     )
                     .environment(\.locale, Locale(identifier: "ko_KR"))
 
-                    HStack {
-                        Text("시작 시간")
-                        Spacer()
-                        Picker("시", selection: $startHour) {
+                    Group {
+                        Picker("시작 시", selection: $startHour) {
                             ForEach(TimeSlotHelper.workStartHour..<TimeSlotHelper.workEndHour, id: \.self) { h in
                                 Text("\(h > 12 ? h - 12 : h)시").tag(h)
                             }
                         }
-                        .pickerStyle(.wheel)
-                        .frame(width: 80, height: 120)
-                        .clipped()
 
-                        Picker("분", selection: $startMinute) {
+                        Picker("시작 분", selection: $startMinute) {
                             Text("00분").tag(0)
                             Text("30분").tag(30)
                         }
-                        .pickerStyle(.wheel)
-                        .frame(width: 80, height: 120)
-                        .clipped()
                     }
+                    .pickerStyle(.menu)
                     .onChange(of: startHour)   { updateStartTime() }
                     .onChange(of: startMinute) { updateStartTime() }
                 }
 
                 Section {
                     Button("예약 삭제", role: .destructive) {
-                        delete()
+                        showDeleteConfirmation = true
+                    }
+                    .confirmationDialog("예약을 삭제하시겠어요?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+                        Button("삭제", role: .destructive) { delete() }
+                        Button("취소", role: .cancel) {}
                     }
                 }
             }
@@ -138,13 +147,24 @@ struct EditAppointmentView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("취소") { dismiss() }
+                    Button("취소", role: .cancel) {
+                        if hasChanges {
+                            showDiscardConfirmation = true
+                        } else {
+                            dismiss()
+                        }
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("저장") { save() }
+                    Button("저장", role: .confirm) { save() }
                         .disabled(!isNameValid)
                 }
             }
+            .confirmationDialog("변경 사항을 버릴까요?", isPresented: $showDiscardConfirmation, titleVisibility: .visible) {
+                Button("변경 사항 버리기", role: .destructive) { dismiss() }
+                Button("계속 편집", role: .cancel) {}
+            }
+            .interactiveDismissDisabled(hasChanges)
             .alert("예약 불가", isPresented: $showError) {
                 Button("확인", role: .cancel) {}
             } message: {

@@ -16,6 +16,7 @@ private enum SheetState: Identifiable {
 struct WeeklyTimetableView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(HolidayStore.self) private var holidayStore
+    @Environment(AppRouter.self) private var router
     @Query private var allAppointments: [Appointment]
     @Query private var allDayOffs: [DayOff]
     @Query private var allExtraWorkDays: [ExtraWorkDay]
@@ -42,40 +43,29 @@ struct WeeklyTimetableView: View {
             ))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 4) {
-                        Button { moveToPreviousWeek() } label: {
-                            Image(systemName: "chevron.left")
-                        }
-                        Button("오늘") { goToCurrentWeek() }
-                            .font(.subheadline)
-                        Button { moveToNextWeek() } label: {
-                            Image(systemName: "chevron.right")
-                        }
-                    }
+                ToolbarItemGroup(placement: .topBarLeading) {
+                    Button("이전 주", systemImage: "chevron.left") { moveToPreviousWeek() }
+                    Button("오늘") { goToCurrentWeek() }
+                    Button("다음 주", systemImage: "chevron.right") { moveToNextWeek() }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
+                    // 켜진 상태는 배경을 채우지 않고 글자 색으로만 표시한다 (월요일 열 자체가 상태를 보여줌)
                     let isOn = isMondayWorkDay(for: viewModel.currentWeekStart)
                     Button { toggleMondayWork() } label: {
                         Text("월")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(isOn ? Color.white : Color.secondary)
-                            .frame(width: 28, height: 28)
-                            .background {
-                                if isOn {
-                                    Circle().fill(Color.accentColor)
-                                }
-                            }
+                            .fontWeight(isOn ? .bold : .regular)
+                            .foregroundStyle(isOn ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
                     }
                     .accessibilityLabel(isOn ? "이번 주 월요일 근무 해제" : "이번 주 월요일 근무 추가")
+                    .accessibilityAddTraits(isOn ? .isSelected : [])
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { activeSheet = .add(nil) } label: {
-                        Image(systemName: "plus")
-                    }
+                ToolbarItem(placement: .topBarPinnedTrailing) {
+                    Button("예약 추가", systemImage: "plus") { activeSheet = .add(nil) }
                 }
             }
+            .sensoryFeedback(.selection, trigger: viewModel.currentWeekStart)
+            .sensoryFeedback(.impact(weight: .light), trigger: allDayOffs.count)
+            .sensoryFeedback(.impact(weight: .light), trigger: allExtraWorkDays.count)
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
                 case .add(let date):
@@ -95,6 +85,9 @@ struct WeeklyTimetableView: View {
                 Text("이번 주 월요일에 예약이 있습니다.\n예약을 먼저 삭제하거나 이동한 뒤 근무를 해제하세요.")
             }
             .task { await holidayStore.requestAccessAndLoad() }
+            .onChange(of: router.pendingAction, initial: true) {
+                handlePendingAction()
+            }
         }
     }
 
@@ -154,6 +147,15 @@ struct WeeklyTimetableView: View {
             } else {
                 modelContext.insert(DayOff(date: startOfDay))
             }
+        }
+    }
+
+    private func handlePendingAction() {
+        guard let action = router.pendingAction else { return }
+        router.pendingAction = nil
+        goToCurrentWeek()
+        if action == .addAppointment {
+            activeSheet = .add(nil)
         }
     }
 

@@ -6,7 +6,7 @@ struct AppointmentCellView: View {
     let color: Color
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 6)
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
             .fill(color.opacity(0.85))
             .overlay(alignment: .topLeading) {
                 VStack(alignment: .leading, spacing: 1) {
@@ -35,5 +35,7 @@ struct AppointmentCellView: View {
                 .padding(.vertical, 3)
             }
             .frame(width: width)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
     }
 }

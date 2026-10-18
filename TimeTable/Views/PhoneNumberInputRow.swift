@@ -38,8 +38,8 @@ struct PhoneNumberInputRow: View {
         }
         .onTapGesture { focus.focusMiddle() }
         .onAppear { parsePhoneNumber() }
-        .onChange(of: middle) { _ in syncPhoneNumber() }
-        .onChange(of: last) { _ in syncPhoneNumber() }
+        .onChange(of: middle) { syncPhoneNumber() }
+        .onChange(of: last) { syncPhoneNumber() }
     }
 
     private func parsePhoneNumber() {
