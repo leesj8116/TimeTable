@@ -49,11 +49,15 @@ struct WeeklyTimetableView: View {
                     Button("다음 주", systemImage: "chevron.right") { moveToNextWeek() }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    // 시스템 버튼형 토글: 켜지면 강조 색으로 채워진다
-                    Toggle("월", isOn: mondayWorkBinding)
-                        .toggleStyle(.button)
-                        .fontWeight(.semibold)
-                        .accessibilityLabel(isMondayWorkDay(for: viewModel.currentWeekStart) ? "이번 주 월요일 근무 해제" : "이번 주 월요일 근무 추가")
+                    // 켜진 상태는 배경을 채우지 않고 글자 색으로만 표시한다 (월요일 열 자체가 상태를 보여줌)
+                    let isOn = isMondayWorkDay(for: viewModel.currentWeekStart)
+                    Button { toggleMondayWork() } label: {
+                        Text("월")
+                            .fontWeight(isOn ? .bold : .regular)
+                            .foregroundStyle(isOn ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
+                    }
+                    .accessibilityLabel(isOn ? "이번 주 월요일 근무 해제" : "이번 주 월요일 근무 추가")
+                    .accessibilityAddTraits(isOn ? .isSelected : [])
                 }
                 ToolbarItem(placement: .topBarPinnedTrailing) {
                     Button("예약 추가", systemImage: "plus") { activeSheet = .add(nil) }
@@ -104,13 +108,6 @@ struct WeeklyTimetableView: View {
     private func hasMondayAppointments(for weekStart: Date) -> Bool {
         let monday = viewModel.monday(for: weekStart)
         return allAppointments.contains { Calendar.current.isDate($0.startTime, inSameDayAs: monday) }
-    }
-
-    private var mondayWorkBinding: Binding<Bool> {
-        Binding(
-            get: { isMondayWorkDay(for: viewModel.currentWeekStart) },
-            set: { _ in toggleMondayWork() }
-        )
     }
 
     private func toggleMondayWork() {
