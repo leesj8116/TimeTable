@@ -16,6 +16,7 @@ private enum SheetState: Identifiable {
 struct WeeklyTimetableView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(HolidayStore.self) private var holidayStore
+    @Environment(AppRouter.self) private var router
     @Query private var allAppointments: [Appointment]
     @Query private var allDayOffs: [DayOff]
 
@@ -37,24 +38,17 @@ struct WeeklyTimetableView: View {
             .navigationTitle(viewModel.weekRangeText())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 4) {
-                        Button { moveToPreviousWeek() } label: {
-                            Image(systemName: "chevron.left")
-                        }
-                        Button("오늘") { goToCurrentWeek() }
-                            .font(.subheadline)
-                        Button { moveToNextWeek() } label: {
-                            Image(systemName: "chevron.right")
-                        }
-                    }
+                ToolbarItemGroup(placement: .topBarLeading) {
+                    Button("이전 주", systemImage: "chevron.left") { moveToPreviousWeek() }
+                    Button("오늘") { goToCurrentWeek() }
+                    Button("다음 주", systemImage: "chevron.right") { moveToNextWeek() }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { activeSheet = .add(nil) } label: {
-                        Image(systemName: "plus")
-                    }
+                ToolbarItem(placement: .topBarPinnedTrailing) {
+                    Button("예약 추가", systemImage: "plus") { activeSheet = .add(nil) }
                 }
             }
+            .sensoryFeedback(.selection, trigger: viewModel.currentWeekStart)
+            .sensoryFeedback(.impact(weight: .light), trigger: allDayOffs.count)
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
                 case .add(let date):
@@ -69,6 +63,9 @@ struct WeeklyTimetableView: View {
                 Text("이 날에 이미 예약이 있습니다.\n예약을 먼저 삭제하거나 이동한 뒤 휴무를 지정하세요.")
             }
             .task { await holidayStore.requestAccessAndLoad() }
+            .onChange(of: router.pendingAction, initial: true) {
+                handlePendingAction()
+            }
         }
     }
 
@@ -94,6 +91,15 @@ struct WeeklyTimetableView: View {
             } else {
                 modelContext.insert(DayOff(date: startOfDay))
             }
+        }
+    }
+
+    private func handlePendingAction() {
+        guard let action = router.pendingAction else { return }
+        router.pendingAction = nil
+        goToCurrentWeek()
+        if action == .addAppointment {
+            activeSheet = .add(nil)
         }
     }
 

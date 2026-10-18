@@ -4,6 +4,7 @@ import SwiftUI
 struct EditDogView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @State private var showDiscardConfirmation = false
     @Query private var appointments: [Appointment]
 
     let dog: Dog
@@ -19,6 +20,12 @@ struct EditDogView: View {
         _name = State(initialValue: dog.name)
         _breedMemo = State(initialValue: dog.breedMemo)
         _phoneNumbers = State(initialValue: dog.phoneNumbers.isEmpty ? [""] : dog.phoneNumbers)
+    }
+
+    private var hasChanges: Bool {
+        name != dog.name
+            || breedMemo != dog.breedMemo
+            || phoneNumbers != (dog.phoneNumbers.isEmpty ? [""] : dog.phoneNumbers)
     }
 
     private var isValid: Bool {
@@ -61,13 +68,24 @@ struct EditDogView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("취소") { dismiss() }
+                    Button("취소", role: .cancel) {
+                        if hasChanges {
+                            showDiscardConfirmation = true
+                        } else {
+                            dismiss()
+                        }
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("저장") { save() }
+                    Button("저장", role: .confirm) { save() }
                         .disabled(!isValid)
                 }
             }
+            .confirmationDialog("변경 사항을 버릴까요?", isPresented: $showDiscardConfirmation, titleVisibility: .visible) {
+                Button("변경 사항 버리기", role: .destructive) { dismiss() }
+                Button("계속 편집", role: .cancel) {}
+            }
+            .interactiveDismissDisabled(hasChanges)
         }
     }
 

@@ -136,11 +136,10 @@ struct DogDetailView: View {
                     showEditSheet = true
                 }
             }
-            ToolbarItem(placement: .topBarLeading) {
-                Button("삭제", role: .destructive) {
-                    showDeleteConfirmation = true
-                }
-                .foregroundStyle(.red)
+        }
+        .toolbarOverflowMenu {
+            Button("삭제", systemImage: "trash", role: .destructive) {
+                showDeleteConfirmation = true
             }
         }
         .sheet(isPresented: $showEditSheet) {

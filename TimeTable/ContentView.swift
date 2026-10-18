@@ -6,22 +6,33 @@ struct ContentView: View {
     @Query private var allAppointments: [Appointment]
     @Query private var allDogs: [Dog]
 
+    @Environment(AppRouter.self) private var router
+    @State private var selectedTab: AppTab = .timetable
+
+    enum AppTab: Hashable {
+        case timetable, members, waiting
+    }
+
     var body: some View {
-        TabView {
-            WeeklyTimetableView()
-                .tabItem {
-                    Label("시간표", systemImage: "calendar")
-                }
+        TabView(selection: $selectedTab) {
+            Tab("시간표", systemImage: "calendar", value: .timetable) {
+                WeeklyTimetableView()
+            }
 
-            DogListView()
-                .tabItem {
-                    Label("회원", systemImage: "pawprint")
-                }
+            Tab("회원", systemImage: "pawprint", value: .members) {
+                DogListView()
+            }
 
-            WaitingMemoView()
-                .tabItem {
-                    Label("대기", systemImage: "clock.badge.questionmark")
-                }
+            Tab("대기", systemImage: "clock.badge.questionmark", value: .waiting) {
+                WaitingMemoView()
+            }
+        }
+        .tabBarMinimizeBehavior(.onScrollDown)
+        .onChange(of: router.pendingAction, initial: true) {
+            // 액션 버튼·단축어 요청은 모두 시간표 탭에서 처리한다
+            if router.pendingAction != nil {
+                selectedTab = .timetable
+            }
         }
         .onAppear {
             #if DEBUG
@@ -44,4 +55,6 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .modelContainer(for: [Appointment.self, Dog.self], inMemory: true)
+        .environment(HolidayStore())
+        .environment(AppRouter.shared)
 }

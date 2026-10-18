@@ -103,6 +103,7 @@ struct TimetableGridView: View {
                 // 메뉴가 잡은 날짜와 화면의 주가 어긋날 수 있다.
                 .contentShape(Rectangle())
                 .simultaneousGesture(weekSwipeGesture)
+                .scrollEdgeEffectStyle(.soft, for: .top)
             }
         }
     }
