@@ -72,4 +72,34 @@ struct TimeTableTests {
         let invalid = DogMigrationHelper.findOrCreateDog(input: "초코", existingDogs: [existing], modelContext: context)
         #expect(invalid == nil)
     }
+
+    @Test func weekDaysIncludesMondayOnlyWhenRequested() async throws {
+        let viewModel = TimetableViewModel()
+        let weekStart = TimetableViewModel.startOfWeek(for: Date())
+        let cal = Calendar.current
+
+        let regular = viewModel.weekDays(for: weekStart)
+        #expect(regular.count == 5)
+        #expect(cal.component(.weekday, from: regular[0]) == 3) // 화
+
+        let withMonday = viewModel.weekDays(for: weekStart, includeMonday: true)
+        #expect(withMonday.count == 6)
+        #expect(cal.component(.weekday, from: withMonday[0]) == 2) // 월
+        #expect(cal.isDate(withMonday[0], inSameDayAs: viewModel.monday(for: weekStart)))
+    }
+
+    // 월요일은 기본적으로 예약 불가이고, 추가 근무일로 지정하면 예약 가능하다
+    @Test func canBookMondayOnlyWhenExtraWorkDay() async throws {
+        let viewModel = TimetableViewModel()
+        let monday = viewModel.monday(for: TimetableViewModel.startOfWeek(for: Date()))
+        let start = Calendar.current.date(bySettingHour: 11, minute: 0, second: 0, of: monday)!
+
+        #expect(!viewModel.canBook(startTime: start, durationMinutes: 60, existing: []))
+        #expect(viewModel.canBook(
+            startTime: start,
+            durationMinutes: 60,
+            existing: [],
+            extraWorkDays: [ExtraWorkDay(date: monday)]
+        ))
+    }
 }
