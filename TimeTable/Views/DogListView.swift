@@ -74,9 +74,17 @@ struct DogDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query private var allAppointments: [Appointment]
-    let dog: Dog
-    @State private var showEditSheet = false
+    @Bindable var dog: Dog
+    // 전화번호 뒷자리는 비어 있으면 저장하지 않도록 따로 들고 있는다
+    @State private var code: String
+    @State private var phoneEntries: [PhoneEntry]
     @State private var showDeleteConfirmation = false
+
+    init(dog: Dog) {
+        _dog = Bindable(dog)
+        _code = State(initialValue: dog.name)
+        _phoneEntries = State(initialValue: (dog.phoneNumbers.isEmpty ? [""] : dog.phoneNumbers).map { PhoneEntry(value: $0) })
+    }
 
     private var visitAppointments: [Appointment] {
         allAppointments
@@ -84,28 +92,63 @@ struct DogDetailView: View {
             .sorted { $0.startTime > $1.startTime }
     }
 
+    private var isCodeEmpty: Bool {
+        code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     var body: some View {
         Form {
-            Section("기본 정보") {
-                LabeledContent("전화번호 뒷자리", value: dog.name)
-                if !dog.latestDogName.isEmpty {
-                    LabeledContent("강아지 이름", value: dog.latestDogName)
+            Section {
+                LabeledContent("전화번호 뒷자리") {
+                    TextField("뒷 4자리", text: $code)
+                        .autocorrectionDisabled()
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
                 }
-                if dog.breedMemo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    LabeledContent("견종/메모", value: "-")
-                } else {
-                    LabeledContent("견종/메모", value: dog.breedMemo)
+                LabeledContent("강아지 이름") {
+                    TextField("이름", text: $dog.latestDogName)
+                        .autocorrectionDisabled()
+                        .multilineTextAlignment(.trailing)
+                }
+                Picker("견종", selection: $dog.dogBreed) {
+                    Text("선택 없음").tag(DogBreed?.none)
+                    ForEach(DogBreed.allCases) { breed in
+                        Text(breed.rawValue).tag(Optional(breed))
+                    }
+                }
+            } header: {
+                Text("기본 정보")
+            } footer: {
+                if isCodeEmpty {
+                    Text("전화번호 뒷자리를 입력해야 변경 사항이 반영됩니다.")
+                        .foregroundStyle(.red)
                 }
             }
 
+            Section("메모") {
+                TextField("특징 메모", text: $dog.breedMemo, axis: .vertical)
+                    .lineLimit(2...4)
+            }
+
             Section("휴대전화번호") {
-                if dog.phoneNumbers.isEmpty {
-                    Text("등록된 번호가 없습니다.")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(dog.phoneNumbers, id: \.self) { phoneNumber in
-                        Text(phoneNumber)
+                ForEach($phoneEntries) { $entry in
+                    HStack {
+                        PhoneNumberInputRow(phoneNumber: $entry.value)
+                        if phoneEntries.count > 1 {
+                            Button(role: .destructive) {
+                                phoneEntries.removeAll { $0.id == entry.id }
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                            }
+                            .buttonStyle(.borderless)
+                        }
                     }
+                }
+
+                Button {
+                    phoneEntries.append(PhoneEntry(value: ""))
+                } label: {
+                    Label("번호 추가", systemImage: "plus.circle")
                 }
             }
 
@@ -134,20 +177,21 @@ struct DogDetailView: View {
         }
         .navigationTitle(dog.name)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("수정") {
-                    showEditSheet = true
-                }
-            }
+        .onChange(of: code) { _, newValue in
+            let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return }
+            dog.name = trimmed
+        }
+        .onChange(of: phoneEntries.map(\.value)) { _, values in
+            dog.phoneNumbers = uniquePhoneNumbers(from: values)
+        }
+        .onDisappear {
+            try? modelContext.save()
         }
         .toolbarOverflowMenu {
             Button("삭제", systemImage: "trash", role: .destructive) {
                 showDeleteConfirmation = true
             }
-        }
-        .sheet(isPresented: $showEditSheet) {
-            EditDogView(dog: dog) { }
         }
         .confirmationDialog("강아지를 삭제하시겠어요?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
             Button("삭제", role: .destructive) {
@@ -159,4 +203,23 @@ struct DogDetailView: View {
             Text("기존 예약 내역은 유지됩니다.")
         }
     }
+
+    private func uniquePhoneNumbers(from values: [String]) -> [String] {
+        var seen = Set<String>()
+        var result: [String] = []
+
+        for value in values {
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty, !seen.contains(trimmed) else { continue }
+            seen.insert(trimmed)
+            result.append(trimmed)
+        }
+
+        return result
+    }
+}
+
+private struct PhoneEntry: Identifiable {
+    let id = UUID()
+    var value: String
 }
