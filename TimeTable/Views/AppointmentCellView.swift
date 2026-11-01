@@ -4,10 +4,17 @@ struct AppointmentCellView: View {
     let appointment: Appointment
     let width: CGFloat
     let color: Color
+    var isHighlighted = false
 
     var body: some View {
         RoundedRectangle(cornerRadius: 8, style: .continuous)
             .fill(color.opacity(0.85))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(.tint, lineWidth: 3)
+                    .opacity(isHighlighted ? 1 : 0)
+            }
+            .animation(.easeOut(duration: 0.3), value: isHighlighted)
             .overlay(alignment: .topLeading) {
                 VStack(alignment: .leading, spacing: 1) {
                     let parts = appointment.dogNameParts

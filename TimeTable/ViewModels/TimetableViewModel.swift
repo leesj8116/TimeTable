@@ -75,6 +75,10 @@ final class TimetableViewModel {
         currentWeekStart = TimetableViewModel.startOfWeek(for: Date())
     }
 
+    func goToWeek(containing date: Date) {
+        currentWeekStart = TimetableViewModel.startOfWeek(for: date)
+    }
+
     func weekRangeText() -> String {
         weekRangeText(for: currentWeekStart)
     }

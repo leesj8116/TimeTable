@@ -73,6 +73,7 @@ struct DogListView: View {
 struct DogDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppRouter.self) private var router
     @Query private var allAppointments: [Appointment]
     @Bindable var dog: Dog
     // 전화번호 뒷자리는 비어 있으면 저장하지 않도록 따로 들고 있는다
@@ -131,23 +132,31 @@ struct DogDetailView: View {
             Section("방문 기록") {
                 LabeledContent("방문 횟수", value: "\(visitAppointments.count)회")
                 ForEach(visitAppointments) { appt in
-                    HStack {
-                        Text(appt.startTime, format: .dateTime.year().month().day())
-                            .environment(\.locale, Locale(identifier: "ko_KR"))
-                        Spacer()
-                        if !appt.dogName.isEmpty {
-                            Text(appt.dogName)
-                                .foregroundStyle(.secondary)
-                                .font(.caption)
+                    // 탭하면 시간표 탭에서 그 예약이 있던 주로 이동한다
+                    Button {
+                        router.pendingAction = .showAppointment(id: appt.id, date: appt.startTime)
+                    } label: {
+                        HStack {
+                            Text(appt.startTime, format: .dateTime.year().month().day())
+                                .environment(\.locale, Locale(identifier: "ko_KR"))
+                            Spacer()
+                            if !appt.dogName.isEmpty {
+                                Text(appt.dogName)
+                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
+                            }
+                            Text(appt.serviceType.rawValue)
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 3)
+                                .background(Color.secondary.opacity(0.15))
+                                .clipShape(Capsule())
                         }
-                        Text(appt.serviceType.rawValue)
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(Color.secondary.opacity(0.15))
-                            .clipShape(Capsule())
+                        .contentShape(Rectangle())
                     }
+                    .tint(.primary)
+                    .accessibilityHint("시간표에서 보기")
                 }
             }
         }

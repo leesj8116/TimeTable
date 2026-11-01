@@ -25,6 +25,7 @@ struct WeeklyTimetableView: View {
     @State private var activeSheet: SheetState?
     @State private var showDayOffConflictAlert = false
     @State private var showMondayConflictAlert = false
+    @State private var highlightedAppointmentID: UUID?
 
     var body: some View {
         NavigationStack {
@@ -32,6 +33,7 @@ struct WeeklyTimetableView: View {
                 days: visibleDays(for: viewModel.currentWeekStart),
                 appointments: appointments(for: viewModel.currentWeekStart),
                 dayOffs: allDayOffs,
+                highlightedAppointmentID: highlightedAppointmentID,
                 onTapAppointment: { activeSheet = .edit($0) },
                 onTapSlot: { activeSheet = .add($0) },
                 onToggleDayOff: toggleDayOff,
@@ -87,6 +89,13 @@ struct WeeklyTimetableView: View {
             .task { await holidayStore.requestAccessAndLoad() }
             .onChange(of: router.pendingAction, initial: true) {
                 handlePendingAction()
+            }
+            .task(id: highlightedAppointmentID) {
+                // 방문 기록에서 넘어온 예약 강조는 잠깐만 보여준다
+                guard highlightedAppointmentID != nil else { return }
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled else { return }
+                highlightedAppointmentID = nil
             }
         }
     }
@@ -153,9 +162,17 @@ struct WeeklyTimetableView: View {
     private func handlePendingAction() {
         guard let action = router.pendingAction else { return }
         router.pendingAction = nil
-        goToCurrentWeek()
-        if action == .addAppointment {
+        switch action {
+        case .addAppointment:
+            goToCurrentWeek()
             activeSheet = .add(nil)
+        case .showTimetable:
+            goToCurrentWeek()
+        case .showAppointment(let id, let date):
+            withoutAnimation {
+                viewModel.goToWeek(containing: date)
+            }
+            highlightedAppointmentID = id
         }
     }
 
