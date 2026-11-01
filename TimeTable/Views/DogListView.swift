@@ -61,7 +61,11 @@ struct DogListView: View {
                 }
             }
             .navigationTitle("회원")
-            .searchable(text: $searchText, prompt: "이름 또는 전화번호 검색")
+            .searchable(
+                text: $searchText,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "이름 또는 전화번호 검색"
+            )
         }
     }
 }
