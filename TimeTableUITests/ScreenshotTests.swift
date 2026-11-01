@@ -32,6 +32,20 @@ final class ScreenshotTests: XCTestCase {
         settle()
         attach(app, name: "02-appointment-form")
         app.navigationBars["예약 수정"].buttons["취소"].tap()
+
+        // 3. 회원 목록 — 검색창이 항상 보이는 상태
+        app.tabBars.buttons["회원"].tap()
+        XCTAssertTrue(app.searchFields["이름 또는 전화번호 검색"].waitForExistence(timeout: 5))
+        settle()
+        attach(app, name: "03-members")
+
+        // 4. 회원 상세 화면 — 바로 편집 가능한 항목과 방문 기록
+        let member = app.staticTexts["1234"].firstMatch
+        XCTAssertTrue(member.waitForExistence(timeout: 5))
+        member.tap()
+        XCTAssertTrue(app.navigationBars["1234"].waitForExistence(timeout: 5))
+        settle()
+        attach(app, name: "04-member-detail")
     }
 
     /// 전환 애니메이션이 끝날 때까지 잠시 대기
