@@ -77,13 +77,11 @@ struct DogDetailView: View {
     @Bindable var dog: Dog
     // 전화번호 뒷자리는 비어 있으면 저장하지 않도록 따로 들고 있는다
     @State private var code: String
-    @State private var phoneEntries: [PhoneEntry]
     @State private var showDeleteConfirmation = false
 
     init(dog: Dog) {
         _dog = Bindable(dog)
         _code = State(initialValue: dog.name)
-        _phoneEntries = State(initialValue: (dog.phoneNumbers.isEmpty ? [""] : dog.phoneNumbers).map { PhoneEntry(value: $0) })
     }
 
     private var visitAppointments: [Appointment] {
@@ -130,28 +128,6 @@ struct DogDetailView: View {
                     .lineLimit(2...4)
             }
 
-            Section("휴대전화번호") {
-                ForEach($phoneEntries) { $entry in
-                    HStack {
-                        PhoneNumberInputRow(phoneNumber: $entry.value)
-                        if phoneEntries.count > 1 {
-                            Button(role: .destructive) {
-                                phoneEntries.removeAll { $0.id == entry.id }
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                            }
-                            .buttonStyle(.borderless)
-                        }
-                    }
-                }
-
-                Button {
-                    phoneEntries.append(PhoneEntry(value: ""))
-                } label: {
-                    Label("번호 추가", systemImage: "plus.circle")
-                }
-            }
-
             Section("방문 기록") {
                 LabeledContent("방문 횟수", value: "\(visitAppointments.count)회")
                 ForEach(visitAppointments) { appt in
@@ -182,9 +158,6 @@ struct DogDetailView: View {
             guard !trimmed.isEmpty else { return }
             dog.name = trimmed
         }
-        .onChange(of: phoneEntries.map(\.value)) { _, values in
-            dog.phoneNumbers = uniquePhoneNumbers(from: values)
-        }
         .onDisappear {
             try? modelContext.save()
         }
@@ -203,23 +176,4 @@ struct DogDetailView: View {
             Text("기존 예약 내역은 유지됩니다.")
         }
     }
-
-    private func uniquePhoneNumbers(from values: [String]) -> [String] {
-        var seen = Set<String>()
-        var result: [String] = []
-
-        for value in values {
-            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !trimmed.isEmpty, !seen.contains(trimmed) else { continue }
-            seen.insert(trimmed)
-            result.append(trimmed)
-        }
-
-        return result
-    }
-}
-
-private struct PhoneEntry: Identifiable {
-    let id = UUID()
-    var value: String
 }
