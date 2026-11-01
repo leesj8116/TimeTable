@@ -115,4 +115,17 @@ struct TimeTableTests {
             extraWorkDays: [ExtraWorkDay(date: monday)]
         ))
     }
+
+    // 방문 기록에서 예약을 선택하면 그 예약이 속한 주(ISO 주 시작 = 월요일)로 이동한다
+    @Test func goToWeekMovesToWeekContainingDate() async throws {
+        let cal = Calendar.current
+        let viewModel = TimetableViewModel()
+        let saturday = cal.date(from: DateComponents(year: 2025, month: 3, day: 15, hour: 14))!
+
+        viewModel.goToWeek(containing: saturday)
+
+        let expectedMonday = cal.date(from: DateComponents(year: 2025, month: 3, day: 10))!
+        #expect(cal.isDate(viewModel.currentWeekStart, inSameDayAs: expectedMonday))
+        #expect(viewModel.weekDays().contains { cal.isDate($0, inSameDayAs: saturday) })
+    }
 }

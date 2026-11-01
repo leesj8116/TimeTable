@@ -6,6 +6,7 @@ struct TimetableGridView: View {
     let days: [Date]
     let appointments: [Appointment]
     let dayOffs: [DayOff]
+    let highlightedAppointmentID: UUID?
     let onTapAppointment: (Appointment) -> Void
     let onTapSlot: (Date) -> Void
     let onToggleDayOff: (Date) -> Void
@@ -14,6 +15,8 @@ struct TimetableGridView: View {
     private let gutterWidth: CGFloat = 50
     private let headerHeight: CGFloat = 50
     private let topPadding: CGFloat = 12
+
+    @State private var scrollPosition = ScrollPosition()
 
     private var weeklyColorMap: [String: Color] {
         let sorted = appointments.sorted { $0.startTime < $1.startTime }
@@ -88,7 +91,8 @@ struct TimetableGridView: View {
                                 AppointmentCellView(
                                     appointment: appt,
                                     width: colWidth - 4,
-                                    color: weeklyColorMap[appt.customerKey] ?? Appointment.pastelColors[0]
+                                    color: weeklyColorMap[appt.customerKey] ?? Appointment.pastelColors[0],
+                                    isHighlighted: appt.id == highlightedAppointmentID
                                 )
                                     .frame(height: h)
                                     .offset(x: x, y: y)
@@ -98,6 +102,10 @@ struct TimetableGridView: View {
                     }
                     .frame(height: TimeSlotHelper.totalHeight + topPadding, alignment: .topLeading)
                 }
+                .scrollPosition($scrollPosition)
+                .onChange(of: highlightedAppointmentID, initial: true) {
+                    scrollToHighlightedAppointment()
+                }
                 // 주간 스와이프는 그리드 본문에만 적용한다.
                 // 헤더에 함께 걸리면 휴무 지정 롱프레스와 동시에 인식되어
                 // 메뉴가 잡은 날짜와 화면의 주가 어긋날 수 있다.
@@ -105,6 +113,16 @@ struct TimetableGridView: View {
                 .simultaneousGesture(weekSwipeGesture)
                 .scrollEdgeEffectStyle(.soft, for: .top)
             }
+        }
+    }
+
+    /// 강조할 예약이 화면(탭 바 위)에 보이도록 세로 스크롤을 옮긴다
+    private func scrollToHighlightedAppointment() {
+        guard let id = highlightedAppointmentID,
+              let appt = appointments.first(where: { $0.id == id }) else { return }
+        let y = TimeSlotHelper.yOffset(for: appt.startTime) + topPadding - TimeSlotHelper.hourHeight
+        withAnimation {
+            scrollPosition.scrollTo(y: max(0, y))
         }
     }
 
