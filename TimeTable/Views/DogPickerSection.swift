@@ -76,8 +76,12 @@ struct DogSummaryRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            if !dog.breedMemo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Text(dog.breedMemo)
+            let breedAndMemo = [dog.breed, dog.breedMemo]
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+                .joined(separator: " · ")
+            if !breedAndMemo.isEmpty {
+                Text(breedAndMemo)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

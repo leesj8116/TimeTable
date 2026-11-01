@@ -14,6 +14,19 @@ struct TimeTableTests {
         #expect(!dog.matches("푸들"))
     }
 
+    @Test func dogBreedDefaultsToNoneAndIsSearchable() async throws {
+        let dog = Dog(name: "1234")
+        #expect(dog.dogBreed == nil)
+        #expect(!dog.matches("비숑"))
+
+        dog.dogBreed = .bichon
+        #expect(dog.breed == "비숑")
+        #expect(dog.matches("비숑"))
+
+        dog.dogBreed = nil
+        #expect(dog.breed.isEmpty)
+    }
+
     // Dog.name은 전화코드 마이그레이션 이후 코드 저장용이고, 표시 이름은 Appointment.dogName이 담당한다
     @Test func appointmentDisplaysOwnDogNameAndLinkedDogCode() async throws {
         let dog = Dog(name: "1234", latestDogName: "초코")
