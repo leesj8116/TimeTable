@@ -39,7 +39,13 @@ enum ScreenshotSeedData {
                 of: days[sample.dayIndex]
             ) else { continue }
 
-            let dog = Dog(name: sample.code, latestDogName: sample.name, breedMemo: sample.breed)
+            let breed = DogBreed(rawValue: sample.breed)
+            let dog = Dog(
+                name: sample.code,
+                latestDogName: sample.name,
+                breed: breed ?? .other,
+                breedMemo: breed == nil ? sample.breed : ""
+            )
             modelContext.insert(dog)
 
             let appointment = Appointment(
