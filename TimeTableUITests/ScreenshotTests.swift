@@ -24,10 +24,13 @@ final class ScreenshotTests: XCTestCase {
         settle()
         attach(app, name: "01-timetable")
 
-        // 2. 예약 수정 화면 — 시드된 예약 셀 탭
+        // 2. 예약 수정 화면 — 뽀삐는 코코아와 시간이 겹쳐 선택 창에서 고른다
         let cell = app.staticTexts["뽀삐"].firstMatch
         XCTAssertTrue(cell.waitForExistence(timeout: 5))
         cell.tap()
+        let choice = app.buttons["뽀삐 10:00~12:00 전체"]
+        XCTAssertTrue(choice.waitForExistence(timeout: 5))
+        choice.tap()
         XCTAssertTrue(app.navigationBars["예약 수정"].waitForExistence(timeout: 5))
         settle()
         attach(app, name: "02-appointment-form")
