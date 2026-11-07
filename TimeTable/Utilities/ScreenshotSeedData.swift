@@ -18,10 +18,12 @@ enum ScreenshotSeedData {
         let days = TimetableViewModel().weekDays()
         guard days.count == 5 else { return }
 
-        // 영업시간(10:00~20:00) 내에서 점심시간(12:30~13:00)과 서로 겹치지 않게 배치
+        // 영업시간(10:00~20:00) 내에서 점심시간(12:30~13:00)을 피해 배치.
+        // 코코아는 긴 예약 사이에 위생을 끼워 넣는 시간 겹침 예시다
         let samples: [(name: String, code: String, breed: String,
                        service: ServiceType, dayIndex: Int, hour: Int, minute: Int, memo: String)] = [
             ("뽀삐", "1234", "말티즈",       .fullGrooming,     0, 10, 0,  ""),
+            ("코코아", "4680", "말티즈",     .sanitary,         0, 10, 30, "발톱"),
             ("초코", "5678", "푸들",         .scissorCut,       0, 14, 0,  ""),
             ("콩이", "2468", "포메라니안",   .bath,             1, 11, 0,  ""),
             ("두부", "1357", "시츄",         .sanitary,         1, 15, 0,  ""),

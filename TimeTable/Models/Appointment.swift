@@ -65,6 +65,10 @@ final class Appointment {
         Calendar.current.date(byAdding: .minute, value: durationMinutes, to: startTime)!
     }
 
+    var timeRangeText: String {
+        "\(TimeSlotHelper.timeLabel(for: startTime))~\(TimeSlotHelper.timeLabel(for: endTime))"
+    }
+
     var displayDogName: String {
         dogName
     }

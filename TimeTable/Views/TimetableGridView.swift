@@ -17,6 +17,7 @@ struct TimetableGridView: View {
     private let topPadding: CGFloat = 12
 
     @State private var scrollPosition = ScrollPosition()
+    @State private var pickingGroupID: UUID?
 
     private var weeklyColorMap: [String: Color] {
         let sorted = appointments.sorted { $0.startTime < $1.startTime }
@@ -35,6 +36,8 @@ struct TimetableGridView: View {
     var body: some View {
         GeometryReader { geo in
             let colWidth = (geo.size.width - gutterWidth) / CGFloat(days.count)
+            let groups = TimeSlotHelper.groups(for: appointments)
+            let customerColors = weeklyColorMap
 
             VStack(spacing: 0) {
                 headerRow(colWidth: colWidth, totalWidth: geo.size.width)
@@ -82,21 +85,48 @@ struct TimetableGridView: View {
                             }
                         }
 
-                        ForEach(appointments) { appt in
+                        ForEach(groups) { group in
+                            let appt = group.host
                             if let col = columnIndex(for: appt.startTime), !isDayOff(days[col]) {
                                 let x = gutterWidth + CGFloat(col) * colWidth + 2
                                 let y = TimeSlotHelper.yOffset(for: appt.startTime) + topPadding
-                                let h = max(TimeSlotHelper.height(forMinutes: appt.durationMinutes), 24)
+                                let h = TimeSlotHelper.height(forMinutes: max(appt.durationMinutes, TimeSlotHelper.minCellMinutes))
 
                                 AppointmentCellView(
                                     appointment: appt,
                                     width: colWidth - 4,
-                                    color: weeklyColorMap[appt.customerKey] ?? Appointment.pastelColors[0],
-                                    isHighlighted: appt.id == highlightedAppointmentID
+                                    color: customerColors[appt.customerKey] ?? Appointment.pastelColors[0],
+                                    isHighlighted: group.members.contains { $0.id == highlightedAppointmentID },
+                                    children: group.children,
+                                    customerColors: customerColors
                                 )
                                     .frame(height: h)
+                                    .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                    // 예약이 있는 칸은 탭하면 수정 화면이 열리므로, 겹침 예약은 여기서 추가한다
+                                    .contextMenu {
+                                        Button {
+                                            onTapSlot(appt.startTime)
+                                        } label: {
+                                            Label("이 시간에 예약 추가", systemImage: "plus")
+                                        }
+                                    }
+                                    .confirmationDialog("예약 선택", isPresented: pickerBinding(for: group), titleVisibility: .visible) {
+                                        ForEach(group.members) { member in
+                                            Button("\(member.displayDogName) \(member.timeRangeText) \(member.serviceType.rawValue)") {
+                                                onTapAppointment(member)
+                                            }
+                                        }
+                                        Button("취소", role: .cancel) {}
+                                    }
                                     .offset(x: x, y: y)
-                                    .onTapGesture { onTapAppointment(appt) }
+                                    .onTapGesture {
+                                        // 카드 안의 글자 한 줄은 정확히 누르기 어려워 카드 전체를 탭해 고르게 한다
+                                        if group.children.isEmpty {
+                                            onTapAppointment(appt)
+                                        } else {
+                                            pickingGroupID = group.id
+                                        }
+                                    }
                             }
                         }
                     }
@@ -116,11 +146,20 @@ struct TimetableGridView: View {
         }
     }
 
+    private func pickerBinding(for group: AppointmentGroup) -> Binding<Bool> {
+        Binding(
+            get: { pickingGroupID == group.id },
+            set: { if !$0 { pickingGroupID = nil } }
+        )
+    }
+
     /// 강조할 예약이 화면(탭 바 위)에 보이도록 세로 스크롤을 옮긴다
     private func scrollToHighlightedAppointment() {
         guard let id = highlightedAppointmentID,
-              let appt = appointments.first(where: { $0.id == id }) else { return }
-        let y = TimeSlotHelper.yOffset(for: appt.startTime) + topPadding - TimeSlotHelper.hourHeight
+              let group = TimeSlotHelper.groups(for: appointments)
+                  .first(where: { $0.members.contains { $0.id == id } }) else { return }
+        // 하위 예약의 글자는 카드 위쪽에 있으므로 카드를 기준으로 옮긴다
+        let y = TimeSlotHelper.yOffset(for: group.host.startTime) + topPadding - TimeSlotHelper.hourHeight
         withAnimation {
             scrollPosition.scrollTo(y: max(0, y))
         }

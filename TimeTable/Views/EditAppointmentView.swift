@@ -17,8 +17,7 @@ struct EditAppointmentView: View {
     @State private var selectedDog: Dog?
     @State private var serviceType: ServiceType
     @State private var startTime: Date
-    @State private var startHour: Int
-    @State private var startMinute: Int
+    @State private var startMinutes: Int
     @State private var durationAdjustment: Int
     @State private var isTwoDogs: Bool
     @State private var memo: String
@@ -41,14 +40,20 @@ struct EditAppointmentView: View {
         _isTwoDogs          = State(initialValue: twoDogs)
         _memo               = State(initialValue: appointment.memo)
 
-        let cal = Calendar.current
-        _startHour   = State(initialValue: cal.component(.hour, from: appointment.startTime))
-        let rawMin   = cal.component(.minute, from: appointment.startTime)
-        _startMinute = State(initialValue: rawMin >= 30 ? 30 : 0)
+        _startMinutes = State(initialValue: TimeSlotHelper.timeOfDayMinutes(for: appointment.startTime) / 30 * 30)
     }
 
     private var durationMinutes: Int {
         (serviceType.baseDuration + durationAdjustment) * (isTwoDogs ? 2 : 1)
+    }
+
+    private var overlappingAppointments: [Appointment] {
+        viewModel.overlappingAppointments(
+            startTime: startTime,
+            durationMinutes: durationMinutes,
+            excluding: appointment.id,
+            existing: allAppointments
+        )
     }
 
     private var trimmedDogName: String {
@@ -108,7 +113,7 @@ struct EditAppointmentView: View {
                     Toggle("한집 두마리", isOn: $isTwoDogs)
                 }
 
-                Section("예약 시간") {
+                Section {
                     DatePicker(
                         "날짜",
                         selection: dateBinding,
@@ -116,21 +121,12 @@ struct EditAppointmentView: View {
                     )
                     .environment(\.locale, Locale(identifier: "ko_KR"))
 
-                    Group {
-                        Picker("시작 시", selection: $startHour) {
-                            ForEach(TimeSlotHelper.workStartHour..<TimeSlotHelper.workEndHour, id: \.self) { h in
-                                Text("\(h > 12 ? h - 12 : h)시").tag(h)
-                            }
-                        }
-
-                        Picker("시작 분", selection: $startMinute) {
-                            Text("00분").tag(0)
-                            Text("30분").tag(30)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .onChange(of: startHour)   { updateStartTime() }
-                    .onChange(of: startMinute) { updateStartTime() }
+                    StartTimePicker(selection: $startMinutes)
+                        .onChange(of: startMinutes) { updateStartTime() }
+                } header: {
+                    Text("예약 시간")
+                } footer: {
+                    OverlapNoticeView(appointments: overlappingAppointments)
                 }
 
                 Section {
@@ -195,8 +191,6 @@ struct EditAppointmentView: View {
         guard viewModel.canBook(
             startTime: snapped,
             durationMinutes: durationMinutes,
-            excluding: appointment.id,
-            existing: allAppointments,
             dayOffs: allDayOffs,
             extraWorkDays: allExtraWorkDays
         ) else {
@@ -231,12 +225,7 @@ struct EditAppointmentView: View {
         if !TimetableViewModel.isWorkDay(date, extraWorkDays: allExtraWorkDays) {
             return "화요일~토요일(또는 추가 근무일)만 예약 가능합니다."
         }
-        let startMin = TimeSlotHelper.timeOfDayMinutes(for: date)
-        let endMin   = startMin + durationMinutes
-        if startMin < TimeSlotHelper.workStartHour * 60 || endMin > TimeSlotHelper.workEndHour * 60 {
-            return "영업 시간(10:00~20:00) 내에서만 예약 가능합니다."
-        }
-        return "해당 시간에 이미 예약이 있습니다."
+        return "영업 시간(10:00~20:00) 내에서만 예약 가능합니다."
     }
 
     private var dateBinding: Binding<Date> {
@@ -245,8 +234,8 @@ struct EditAppointmentView: View {
             set: { newDate in
                 let cal = Calendar.current
                 var comps = cal.dateComponents([.year, .month, .day], from: newDate)
-                comps.hour   = startHour
-                comps.minute = startMinute
+                comps.hour = startMinutes / 60
+                comps.minute = startMinutes % 60
                 comps.second = 0
                 startTime = cal.date(from: comps) ?? newDate
             }
@@ -256,8 +245,8 @@ struct EditAppointmentView: View {
     private func updateStartTime() {
         let cal = Calendar.current
         var comps = cal.dateComponents([.year, .month, .day], from: startTime)
-        comps.hour   = startHour
-        comps.minute = startMinute
+        comps.hour = startMinutes / 60
+        comps.minute = startMinutes % 60
         comps.second = 0
         startTime = cal.date(from: comps) ?? startTime
     }

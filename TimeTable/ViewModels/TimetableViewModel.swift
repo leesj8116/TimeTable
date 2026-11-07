@@ -96,20 +96,19 @@ final class TimetableViewModel {
         }
     }
 
-    /// Returns true if the proposed time slot is bookable
+    /// Returns true if the proposed time slot is bookable.
+    /// 다른 예약과 시간이 겹치는 것은 허용한다 (overlappingAppointments로 안내만 한다)
     func canBook(
         startTime: Date,
         durationMinutes: Int,
-        excluding id: UUID? = nil,
-        existing: [Appointment],
         dayOffs: [DayOff] = [],
         extraWorkDays: [ExtraWorkDay] = []
     ) -> Bool {
         let cal = Calendar.current
-        let endTime = cal.date(byAdding: .minute, value: durationMinutes, to: startTime)!
 
         let startMin = TimeSlotHelper.timeOfDayMinutes(for: startTime)
-        let endMin   = TimeSlotHelper.timeOfDayMinutes(for: endTime)
+        // 종료 시각의 시각값을 쓰면 자정을 넘긴 예약이 이른 시각으로 보여 검사를 통과한다
+        let endMin   = startMin + durationMinutes
 
         // Reject if day is marked as day off
         if dayOffs.contains(where: { cal.isDate($0.date, inSameDayAs: startTime) }) { return false }
@@ -121,16 +120,19 @@ final class TimetableViewModel {
         // Must be a work day (Tue–Sat, or an extra work day)
         guard TimetableViewModel.isWorkDay(startTime, extraWorkDays: extraWorkDays) else { return false }
 
-        // No overlap with existing appointments on the same day
-        let sameDay = existing.filter {
-            cal.isDate($0.startTime, inSameDayAs: startTime) && $0.id != id
-        }
-        for appt in sameDay {
-            let s = TimeSlotHelper.timeOfDayMinutes(for: appt.startTime)
-            let e = TimeSlotHelper.timeOfDayMinutes(for: appt.endTime)
-            if startMin < e && endMin > s { return false }
-        }
-
         return true
+    }
+
+    /// 제안한 시간과 겹치는 기존 예약을 시작 시각 순으로 반환한다
+    func overlappingAppointments(
+        startTime: Date,
+        durationMinutes: Int,
+        excluding id: UUID? = nil,
+        existing: [Appointment]
+    ) -> [Appointment] {
+        let endTime = Calendar.current.date(byAdding: .minute, value: durationMinutes, to: startTime)!
+        return existing
+            .filter { $0.id != id && startTime < $0.endTime && endTime > $0.startTime }
+            .sorted { $0.startTime < $1.startTime }
     }
 }
